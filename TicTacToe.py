@@ -302,7 +302,7 @@ class TIC_TAC_TOE():
         pygame.init()
         self.screen = pygame.display.set_mode((WIDTH, HEIGHT))
         pygame.display.set_caption('Tic Tac Toe [AI]')
-        Icon = pygame.image.load('Extras/Icon.png').convert_alpha()
+        Icon = pygame.image.load('./Assets/Icon.png').convert_alpha()
         pygame.display.set_icon(Icon)
 
         # Board & Game Mode Variables
@@ -325,34 +325,34 @@ class TIC_TAC_TOE():
     def run(self):
 
         # Images & Buttons
-        Main_Menu_BG_IMG = pygame.image.load('Extras/BG_IMG.jpg').convert_alpha()
+        Main_Menu_BG_IMG = pygame.image.load('./Assets/BG_IMG.jpg').convert_alpha()
         Main_Menu_BG = Button(650, -30, Main_Menu_BG_IMG, .6)
 
-        Game_Mode_BG_IMG = pygame.image.load('Extras/BG_IMG_2.jpg').convert_alpha()
+        Game_Mode_BG_IMG = pygame.image.load('./Assets/BG_IMG_2.jpg').convert_alpha()
         Game_Mode_BG = Button(700, 0, Game_Mode_BG_IMG, .7)
 
-        Play_IMG = pygame.image.load('Extras/Start_3.png').convert_alpha()
+        Play_IMG = pygame.image.load('./Assets/Start_3.png').convert_alpha()
         Play_Button = Button(220,200,Play_IMG, .3)
 
-        Back_IMG = pygame.image.load('Extras/Back.png').convert_alpha()
+        Back_IMG = pygame.image.load('./Assets/Back.png').convert_alpha()
         Back_Button = Button(580,20,Back_IMG, .15)
 
-        PVP_IMG = pygame.image.load('Extras/PVP.png').convert_alpha()
+        PVP_IMG = pygame.image.load('./Assets/PVP.png').convert_alpha()
         PVP_Button = Button(250, 130, PVP_IMG, .2)
 
-        AI_IMG = pygame.image.load('Extras/AI.png').convert_alpha()
+        AI_IMG = pygame.image.load('./Assets/AI.png').convert_alpha()
         AI_Button = Button(450, 130, AI_IMG, .2)
 
-        AI_BG_IMG = pygame.image.load('Extras/BG_IMG_3.jpg').convert_alpha()
+        AI_BG_IMG = pygame.image.load('./Assets/BG_IMG_3.jpg').convert_alpha()
         AI_BG = Button(920,0,AI_BG_IMG, .6)
 
-        AI_RANDOM_IMG = pygame.image.load('Extras/Random.png').convert_alpha()
+        AI_RANDOM_IMG = pygame.image.load('./Assets/Random.png').convert_alpha()
         AI_RANDOM = Button(150, 180, AI_RANDOM_IMG, .2)
 
-        AI_MINIMAX_IMG = pygame.image.load('Extras/MiniMax.png').convert_alpha()
+        AI_MINIMAX_IMG = pygame.image.load('./Assets/MiniMax.png').convert_alpha()
         AI_MINIMAX = Button(575, 180, AI_MINIMAX_IMG, .2)
 
-        EXIT_IMG = pygame.image.load('Extras/Exit.png').convert_alpha()
+        EXIT_IMG = pygame.image.load('./Assets/Exit.png').convert_alpha()
         EXIT_Button = Button(575, 500, EXIT_IMG, .2)
 
         while self.Run:
