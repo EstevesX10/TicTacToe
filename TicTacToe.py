@@ -9,6 +9,8 @@ from Constants import (WIDTH,
                        HEIGHT,
                        ROWS,
                        COLS,
+                       X_OFFSET,
+                       Y_OFFSET,
                        SQSIZE,
                        LINE_WIDTH,
                        BG_COLOR,
@@ -49,8 +51,8 @@ class Board:
                 
                 if show:
                     color = CIRC_COLOR if self.squares[0][col] == 2 else X_COLOR
-                    Initial_Pos = (col * SQSIZE + SQSIZE // 2, 20)
-                    Final_Pos = (col * SQSIZE + SQSIZE // 2, HEIGHT - 20)
+                    Initial_Pos = (col * SQSIZE + X_OFFSET + SQSIZE // 2, 20 + Y_OFFSET)
+                    Final_Pos = (col * SQSIZE + X_OFFSET + SQSIZE // 2, HEIGHT - 20 - Y_OFFSET)
                     pygame.draw.line(self.screen, color, Initial_Pos, Final_Pos, LINE_WIDTH)
                 
                 # Returns Player Number
@@ -62,8 +64,8 @@ class Board:
                 
                 if show:
                     color = CIRC_COLOR if self.squares[row][0] == 2 else X_COLOR
-                    Initial_Pos = (20, row * SQSIZE + SQSIZE // 2)
-                    Final_Pos = (WIDTH - 20, row * SQSIZE + SQSIZE // 2)
+                    Initial_Pos = (20 + X_OFFSET, row * SQSIZE + SQSIZE // 2 + Y_OFFSET)
+                    Final_Pos = (WIDTH - 20 - X_OFFSET, row * SQSIZE + SQSIZE // 2 + Y_OFFSET)
                     pygame.draw.line(self.screen, color, Initial_Pos, Final_Pos, LINE_WIDTH)
                 
                 # Returns Player Number
@@ -74,8 +76,8 @@ class Board:
             
             if show:
                 color = CIRC_COLOR if self.squares[1][1] == 2 else X_COLOR
-                Initial_Pos = (20, 20)
-                Final_Pos = (WIDTH- 20, HEIGHT - 20)
+                Initial_Pos = (20 + X_OFFSET, 20 + Y_OFFSET)
+                Final_Pos = (WIDTH - 20 - X_OFFSET, HEIGHT - 20 - Y_OFFSET)
                 pygame.draw.line(self.screen, color, Initial_Pos, Final_Pos, X_WIDTH)
             
             return self.squares[1][1]
@@ -85,8 +87,8 @@ class Board:
             
             if show:
                 color = CIRC_COLOR if self.squares[1][1] == 2 else X_COLOR
-                Initial_Pos = (20, HEIGHT - 20)
-                Final_Pos = (WIDTH - 20, 20)
+                Initial_Pos = (20 + X_OFFSET, HEIGHT - 20 - Y_OFFSET)
+                Final_Pos = (WIDTH - 20 - X_OFFSET, 20 + Y_OFFSET)
                 pygame.draw.line(self.screen, color, Initial_Pos, Final_Pos, X_WIDTH)
             
             return self.squares[1][1]
@@ -114,6 +116,117 @@ class Board:
     
     def Is_Empty(self):
         return self.marked_squares == 0
+
+
+class Game:
+    def __init__(self, screen):
+        self.board = Board(screen)
+        self.ai = AI()
+        self.player = 1 # PLayer 1 -> 'X' || Player 2 -> 'O'
+        self.game_mode = 'AI' # PVP or AI
+        self.screen = screen
+        self.running = True 
+    
+    def Make_Move(self, row, col):
+        self.board.Mark_Square(row, col, self.player)
+        self.Draw_Fig(row, col)
+        self.Next_Turn()
+
+    def Show_Lines(self):
+        # Paint Screen
+        self.screen.fill(BG_COLOR)
+        
+        """ REPLACE WHITE WITH THE LINES COLOR """
+        background_rect = pygame.Rect(X_OFFSET, Y_OFFSET, SQSIZE*COLS, SQSIZE*ROWS)
+        
+        pygame.draw.rect(self.screen, WHITE, background_rect)
+
+        # Vertical Lines
+        pygame.draw.line(self.screen, LINES_COLOR, (SQSIZE + X_OFFSET, Y_OFFSET), (SQSIZE + X_OFFSET, HEIGHT - Y_OFFSET), LINE_WIDTH)
+        pygame.draw.line(self.screen, LINES_COLOR, (WIDTH - SQSIZE - X_OFFSET, Y_OFFSET), (WIDTH - SQSIZE - X_OFFSET, HEIGHT - Y_OFFSET), LINE_WIDTH)
+
+        # Horizontal Lines
+        pygame.draw.line(self.screen, LINES_COLOR, (X_OFFSET, SQSIZE + Y_OFFSET), (WIDTH - X_OFFSET, SQSIZE + Y_OFFSET), LINE_WIDTH)
+        pygame.draw.line(self.screen, LINES_COLOR, (X_OFFSET, HEIGHT - SQSIZE - Y_OFFSET), (WIDTH - X_OFFSET, HEIGHT - SQSIZE - Y_OFFSET), LINE_WIDTH)
+
+    def Draw_Fig(self, row, col):
+        if self.player == 1:
+            # Draw 'X (Composed by Ascending and Decending Line)
+            # Descending line
+            start_desc = (col * SQSIZE + X_OFFSET + OFFSET, row * SQSIZE + Y_OFFSET + OFFSET)
+            end_desc = (col * SQSIZE + SQSIZE + X_OFFSET - OFFSET, row * SQSIZE + SQSIZE + Y_OFFSET - OFFSET)
+            pygame.draw.line(self.screen, X_COLOR, start_desc, end_desc, X_WIDTH)
+
+            # Ascending line
+            start_asc = (col * SQSIZE + X_OFFSET + OFFSET, row * SQSIZE + SQSIZE + Y_OFFSET - OFFSET)
+            end_asc = (col * SQSIZE + SQSIZE + X_OFFSET - OFFSET, row * SQSIZE + Y_OFFSET + OFFSET)
+            pygame.draw.line(self.screen, X_COLOR, start_asc, end_asc, X_WIDTH)
+
+        elif(self.player == 2):
+            # Draw 'O'
+            center = (col * SQSIZE + X_OFFSET + SQSIZE // 2, row * SQSIZE + Y_OFFSET + SQSIZE // 2)
+            pygame.draw.circle(self.screen, CIRC_COLOR, center, RADIUS, CIRC_WIDTH)
+
+    def Next_Turn(self):
+        self.player = 1 if self.player == 2 else 2
+
+    def Change_Game_Mode(self):
+        self.game_mode = 'AI' if self.game_mode == 'PVP' else 'PVP'
+
+    def IsOver(self):
+        return self.board.Final_State(show=True) != 0 or self.board.Is_Full()
+
+    def Reset(self, screen):
+        self.__init__(screen)
+
+    def run(self, AI_Level, Mode):
+        # Updating Game Parameters
+        self.ai.level = AI_Level
+        self.game_mode = Mode
+
+        # Displaying the Game Board
+        self.Show_Lines()
+
+        # MAIN LOOP
+        while True:
+            for event in pygame.event.get():
+                if event.type == pygame.KEYDOWN:
+                    # Press g -> Change Game Mode
+                    if event.key == pygame.K_g:
+                        self.Change_Game_Mode()
+
+                    if event.key == pygame.K_r:
+                        self.Reset(self.screen)
+                        self.game_mode = Mode
+                        self.ai.level = AI_Level 
+                        self.Show_Lines()
+                    
+                if event.type == pygame.QUIT:
+                    pygame.quit()
+                    sys.exit()
+                
+                if event.type == pygame.MOUSEBUTTONDOWN:
+                    pos = event.pos
+                    row = (pos[1] - Y_OFFSET) // SQSIZE
+                    col = (pos[0] - X_OFFSET) // SQSIZE
+                    
+                    if self.board.Empty_Square(row, col) and self.running:
+                        self.Make_Move(row, col)
+                        if self.IsOver():
+                            self.running = False
+            
+            if self.game_mode == "AI" and self.player == self.ai.player and self.running:
+                # Update the Screen
+                pygame.display.update()
+                
+                # AI Methods
+                row, col = self.ai.Evaluate(self.board)
+                self.Make_Move(row, col)
+
+                if self.IsOver():
+                    self.running = False
+
+            pygame.display.update()
 
 class AI:
     def __init__(self, level=1, player=2):
@@ -191,117 +304,12 @@ class AI:
 
         return Move
 
-class Game:
-    def __init__(self, screen):
-        self.board = Board(screen)
-        self.ai = AI()
-        self.player = 1 # PLayer 1 -> 'X' || Player 2 -> 'O'
-        self.game_mode = 'AI' # PVP or AI
-        self.screen = screen
-        self.running = True 
-    
-    def Make_Move(self, row, col):
-        self.board.Mark_Square(row, col, self.player)
-        self.Draw_Fig(row, col)
-        self.Next_Turn()
-
-    def Show_Lines(self):
-        # Paint Screen
-        self.screen.fill(BG_COLOR)
-        
-        # Vertical Lines
-        pygame.draw.line(self.screen, LINES_COLOR, (SQSIZE, 0), (SQSIZE, HEIGHT), LINE_WIDTH)
-        pygame.draw.line(self.screen, LINES_COLOR, (WIDTH-SQSIZE, 0), (WIDTH - SQSIZE, HEIGHT), LINE_WIDTH)
-
-        # Horizontal Lines
-        pygame.draw.line(self.screen, LINES_COLOR, (0, SQSIZE), (WIDTH, SQSIZE), LINE_WIDTH)
-        pygame.draw.line(self.screen, LINES_COLOR, (0, HEIGHT - SQSIZE), (WIDTH, HEIGHT - SQSIZE), LINE_WIDTH)
-
-    def Draw_Fig(self, row, col):
-        if self.player == 1:
-            # Draw 'X (Composed by Ascending and Decending Line)
-            # Descending line
-            start_desc = (col * SQSIZE + OFFSET, row * SQSIZE + OFFSET)
-            end_desc = (col * SQSIZE + SQSIZE - OFFSET, row * SQSIZE + SQSIZE - OFFSET)
-            pygame.draw.line(self.screen, X_COLOR, start_desc, end_desc, X_WIDTH)
-
-            # Ascending line
-            start_asc = (col * SQSIZE + OFFSET, row * SQSIZE + SQSIZE - OFFSET)
-            end_asc = (col * SQSIZE + SQSIZE - OFFSET, row * SQSIZE + OFFSET)
-            pygame.draw.line(self.screen, X_COLOR, start_asc, end_asc, X_WIDTH)
-
-        elif(self.player == 2):
-            # Draw 'O'
-            center = (col * SQSIZE + SQSIZE // 2, row * SQSIZE + SQSIZE // 2)
-            pygame.draw.circle(self.screen, CIRC_COLOR, center, RADIUS, CIRC_WIDTH)
-
-    def Next_Turn(self):
-        self.player = 1 if self.player == 2 else 2
-
-    def Change_Game_Mode(self):
-        self.game_mode = 'AI' if self.game_mode == 'PVP' else 'PVP'
-
-    def IsOver(self):
-        return self.board.Final_State(show=True) != 0 or self.board.Is_Full()
-
-    def Reset(self, screen):
-        self.__init__(screen)
-
-    def run(self, AI_Level, Mode):
-        # Updating Game Parameters
-        self.ai.level = AI_Level
-        self.game_mode = Mode
-
-        # Displaying the Game Board
-        self.Show_Lines()
-
-        # MAIN LOOP
-        while True:
-            for event in pygame.event.get():
-                if event.type == pygame.KEYDOWN:
-                    # Press g -> Change Game Mode
-                    if event.key == pygame.K_g:
-                        self.Change_Game_Mode()
-
-                    if event.key == pygame.K_r:
-                        self.Reset(self.screen)
-                        self.game_mode = Mode
-                        self.ai.level = AI_Level 
-                        self.Show_Lines()
-                    
-                if event.type == pygame.QUIT:
-                    pygame.quit()
-                    sys.exit()
-                
-                if event.type == pygame.MOUSEBUTTONDOWN:
-                    pos = event.pos
-                    row = pos[1] // SQSIZE
-                    col = pos[0] // SQSIZE
-                    
-                    if self.board.Empty_Square(row, col) and self.running:
-                        self.Make_Move(row, col)
-                        if self.IsOver():
-                            self.running = False
-            
-            if self.game_mode == "AI" and self.player == self.ai.player and self.running:
-                # Update the Screen
-                pygame.display.update()
-                
-                # AI Methods
-                row, col = self.ai.Evaluate(self.board)
-                self.Make_Move(row, col)
-
-                if self.IsOver():
-                    self.running = False
-
-            pygame.display.update()
-
 class TIC_TAC_TOE():
     def __init__(self):
         # Initializing
         pygame.init()
         self.screen = pygame.display.set_mode((WIDTH, HEIGHT))
-        pygame.display.set_caption('Tic Tac Toe [AI]')
+        pygame.display.set_caption('TicTacToe [AI]')
         Icon = pygame.image.load('./Assets/Icon.png').convert_alpha()
         pygame.display.set_icon(Icon)
 
@@ -347,10 +355,10 @@ class TIC_TAC_TOE():
         AI_BG = Image(AI_BG_IMG, 920, 0, .6)
 
         AI_RANDOM_IMG = pygame.image.load('./Assets/Random.png').convert_alpha()
-        AI_RANDOM = Image(AI_RANDOM_IMG, 150, 180, .2)
+        AI_RANDOM_Button = Button(AI_RANDOM_IMG, 150, 180, .2)
 
         AI_MINIMAX_IMG = pygame.image.load('./Assets/MiniMax.png').convert_alpha()
-        AI_MINIMAX = Image(AI_MINIMAX_IMG, 575, 180, .2)
+        AI_MINIMAX_Button = Button(AI_MINIMAX_IMG, 575, 180, .2)
 
         EXIT_IMG = pygame.image.load('./Assets/Exit.png').convert_alpha()
         EXIT_Button = Button(EXIT_IMG, 575, 500, .2)
@@ -390,11 +398,11 @@ class TIC_TAC_TOE():
                 self.Write("Choice", self.My_Font, WHITE, 56, 330, self.screen)
                 self.Write("MiniMax", self.My_Font, WHITE, 475, 300, self.screen)
 
-                if AI_RANDOM.Action(self.screen):
+                if AI_RANDOM_Button.Action(self.screen):
                     print("AI RANDOM")
                     self.game.run(0, "AI")
 
-                if AI_MINIMAX.Action(self.screen):
+                if AI_MINIMAX_Button.Action(self.screen):
                     print("AI MINIMAX")
                     self.game.run(1, "AI")
 
