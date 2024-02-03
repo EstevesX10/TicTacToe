@@ -17,6 +17,7 @@ from Constants import (WIDTH,
                        LINES_COLOR,
                        BLACK,
                        WHITE,
+                       BLUE,
                        CIRC_COLOR,
                        CIRC_WIDTH,
                        RADIUS,
@@ -38,7 +39,7 @@ class Board:
         other_board.marked_squares = self.marked_squares
         return other_board
 
-    def Final_State(self, show=False):
+    def Final_State(self, show=False): # Marking Winner Lines 
         '''
         -> return 0 if there is no win yet
         -> return 1 if Player 1 Wins
@@ -117,15 +118,15 @@ class Board:
     def Is_Empty(self):
         return self.marked_squares == 0
 
-
 class Game:
     def __init__(self, screen):
         self.board = Board(screen)
         self.ai = AI()
-        self.player = 1 # PLayer 1 -> 'X' || Player 2 -> 'O'
+        self.player = 1 # Player 1 -> 'X' || Player 2 -> 'O'
         self.game_mode = 'AI' # PVP or AI
         self.screen = screen
         self.running = True 
+        self.winner = 0 # 0 -> Tie || 1 -> 'X' Wins || 2 -> 'O' Wins
     
     def Make_Move(self, row, col):
         self.board.Mark_Square(row, col, self.player)
@@ -134,20 +135,19 @@ class Game:
 
     def Show_Lines(self):
         # Paint Screen
-        self.screen.fill(BG_COLOR)
+        self.screen.fill(BLUE)
         
-        """ REPLACE WHITE WITH THE LINES COLOR """
         background_rect = pygame.Rect(X_OFFSET, Y_OFFSET, SQSIZE*COLS, SQSIZE*ROWS)
-        
-        pygame.draw.rect(self.screen, WHITE, background_rect)
+        pygame.draw.rect(self.screen, BG_COLOR, background_rect, 0, 8)
 
         # Vertical Lines
-        pygame.draw.line(self.screen, LINES_COLOR, (SQSIZE + X_OFFSET, Y_OFFSET), (SQSIZE + X_OFFSET, HEIGHT - Y_OFFSET), LINE_WIDTH)
-        pygame.draw.line(self.screen, LINES_COLOR, (WIDTH - SQSIZE - X_OFFSET, Y_OFFSET), (WIDTH - SQSIZE - X_OFFSET, HEIGHT - Y_OFFSET), LINE_WIDTH)
+        pygame.draw.line(self.screen, LINES_COLOR, (SQSIZE + X_OFFSET, Y_OFFSET), (SQSIZE + X_OFFSET, Y_OFFSET + 3*SQSIZE - 1), LINE_WIDTH)
+        pygame.draw.line(self.screen, LINES_COLOR, (WIDTH - SQSIZE - X_OFFSET, Y_OFFSET), (WIDTH - SQSIZE - X_OFFSET, Y_OFFSET + 3*SQSIZE - 1), LINE_WIDTH)
 
         # Horizontal Lines
-        pygame.draw.line(self.screen, LINES_COLOR, (X_OFFSET, SQSIZE + Y_OFFSET), (WIDTH - X_OFFSET, SQSIZE + Y_OFFSET), LINE_WIDTH)
-        pygame.draw.line(self.screen, LINES_COLOR, (X_OFFSET, HEIGHT - SQSIZE - Y_OFFSET), (WIDTH - X_OFFSET, HEIGHT - SQSIZE - Y_OFFSET), LINE_WIDTH)
+        # pygame.draw.line(self.screen, LINES_COLOR, (X_OFFSET, SQSIZE + Y_OFFSET), (WIDTH - X_OFFSET, SQSIZE + Y_OFFSET), LINE_WIDTH)
+        pygame.draw.line(self.screen, LINES_COLOR, (X_OFFSET, SQSIZE + Y_OFFSET), (X_OFFSET + 3*SQSIZE - 1, SQSIZE + Y_OFFSET), LINE_WIDTH)
+        pygame.draw.line(self.screen, LINES_COLOR, (X_OFFSET, HEIGHT - SQSIZE - Y_OFFSET), (X_OFFSET + 3*SQSIZE - 1, HEIGHT - SQSIZE - Y_OFFSET), LINE_WIDTH)
 
     def Draw_Fig(self, row, col):
         if self.player == 1:
@@ -179,6 +179,18 @@ class Game:
     def Reset(self, screen):
         self.__init__(screen)
 
+    def Valid_Pos(self, row, col):
+        if ((row >= 0 and row < COLS) and (col >= 0 and col < ROWS)):
+            return True # Inside the Board
+        else:
+            return False # Outside of the Board
+
+    def Find_Winner(self):
+        final_state = self.board.Final_State(show=True)
+        if (final_state != 0):
+            return int(final_state)
+        return 0
+
     def run(self, AI_Level, Mode):
         # Updating Game Parameters
         self.ai.level = AI_Level
@@ -209,10 +221,12 @@ class Game:
                     pos = event.pos
                     row = (pos[1] - Y_OFFSET) // SQSIZE
                     col = (pos[0] - X_OFFSET) // SQSIZE
-                    
-                    if self.board.Empty_Square(row, col) and self.running:
+
+                    if self.Valid_Pos(row, col) and self.board.Empty_Square(row, col) and self.running:
                         self.Make_Move(row, col)
                         if self.IsOver():
+                            self.winner = self.Find_Winner()
+                            print(self.winner)
                             self.running = False
             
             if self.game_mode == "AI" and self.player == self.ai.player and self.running:
@@ -224,6 +238,8 @@ class Game:
                 self.Make_Move(row, col)
 
                 if self.IsOver():
+                    self.winner = self.Find_Winner()
+                    print(self.winner)
                     self.running = False
 
             pygame.display.update()
@@ -304,9 +320,9 @@ class AI:
 
         return Move
 
-class TIC_TAC_TOE():
+class TicTacToe():
     def __init__(self):
-        # Initializing
+        # Initializing Pygame
         pygame.init()
         self.screen = pygame.display.set_mode((WIDTH, HEIGHT))
         pygame.display.set_caption('TicTacToe [AI]')
@@ -422,5 +438,6 @@ class TIC_TAC_TOE():
             pygame.display.update()
         pygame.quit()
 
-Tic_Tac_Toe = TIC_TAC_TOE()
-Tic_Tac_Toe.run()
+if __name__ == "__main__":
+    Tic_Tac_Toe = TicTacToe()
+    Tic_Tac_Toe.run()
