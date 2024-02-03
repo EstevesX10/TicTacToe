@@ -1,7 +1,7 @@
 import sys
 import pygame
 import random
-import copy
+from copy import (copy, deepcopy)
 from math import inf
 import numpy as np
 from Button import (Button)
@@ -22,13 +22,19 @@ from Constants import (WIDTH,
                        X_WIDTH,
                        OFFSET)
 
-
 class Board:
     def __init__(self, screen):
         self.screen = screen
         self.squares = np.zeros((ROWS,COLS))
         self.empty_squares = self.squares # List of Empty Squares
         self.marked_squares = 0 # Number os Squares Occupied
+
+    def Copy(self):
+        other_board = Board(self.screen)
+        other_board.squares = deepcopy(self.squares)
+        other_board.empty_squares = deepcopy(self.empty_squares)
+        other_board.marked_squares = self.marked_squares
+        return other_board
 
     def Final_State(self, show=False):
         '''
@@ -148,7 +154,7 @@ class AI:
             Empty_Squares = board.Get_Empty_Squares()
 
             for (row, col) in Empty_Squares:
-                Temp_Board = copy.deepcopy(board)
+                Temp_Board = board.Copy()
                 Temp_Board.Mark_Square(row, col, 1)
                 Evaluation = self.MiniMax(Temp_Board, False)[0]
                 if Evaluation > Max_Evaluation:
@@ -163,7 +169,7 @@ class AI:
             Empty_Squares = board.Get_Empty_Squares()
 
             for (row, col) in Empty_Squares:
-                Temp_Board = copy.deepcopy(board)
+                Temp_Board = board.Copy()
                 Temp_Board.Mark_Square(row, col, self.player)
                 Evaluation = self.MiniMax(Temp_Board, True)[0]
                 if Evaluation < Min_Evaluation:
@@ -193,7 +199,6 @@ class Game:
         self.game_mode = 'AI' # PVP or AI
         self.screen = screen
         self.running = True 
-        self.Show_Lines()
     
     def Make_Move(self, row, col):
         self.board.Mark_Square(row, col, self.player)
@@ -239,12 +244,16 @@ class Game:
     def IsOver(self):
         return self.board.Final_State(show=True) != 0 or self.board.Is_Full()
 
-    def Reset(self):
-        self.__init__()
+    def Reset(self, screen):
+        self.__init__(screen)
 
     def run(self, AI_Level, Mode):
+        # Updating Game Parameters
         self.ai.level = AI_Level
         self.game_mode = Mode
+
+        # Displaying the Game Board
+        self.Show_Lines()
 
         # MAIN LOOP
         while True:
@@ -255,12 +264,11 @@ class Game:
                         self.Change_Game_Mode()
 
                     if event.key == pygame.K_r:
-                        self.Reset()
-                        board = self.board
+                        self.Reset(self.screen)
                         self.game_mode = Mode
                         self.ai.level = AI_Level 
-                        ai = self.ai
-
+                        self.Show_Lines()
+                    
                 if event.type == pygame.QUIT:
                     pygame.quit()
                     sys.exit()
@@ -270,17 +278,17 @@ class Game:
                     row = pos[1] // SQSIZE
                     col = pos[0] // SQSIZE
                     
-                    if board.Empty_Square(row, col) and self.running:
+                    if self.board.Empty_Square(row, col) and self.running:
                         self.Make_Move(row, col)
                         if self.IsOver():
                             self.running = False
             
-            if self.game_mode == "AI" and self.player == ai.player and self.running:
+            if self.game_mode == "AI" and self.player == self.ai.player and self.running:
                 # Update the Screen
                 pygame.display.update()
                 
                 # AI Methods
-                row, col = ai.Evaluate(board)
+                row, col = self.ai.Evaluate(self.board)
                 self.Make_Move(row, col)
 
                 if self.IsOver():
