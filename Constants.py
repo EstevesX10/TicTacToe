@@ -2,9 +2,12 @@
 WIDTH = 600
 HEIGHT = 600
 
+# Board Configuration
 ROWS = 3
 COLS = 3
 
+# Offsets
+OFFSET = 50
 X_OFFSET = 80
 Y_OFFSET = 110
 
@@ -12,16 +15,13 @@ SQSIZE = (WIDTH - (2*X_OFFSET))//ROWS
 LINE_WIDTH = 15
 
 # Colors
-# BG_COLOR = (28, 170, 156)
-# LINES_COLOR = (23, 145, 135)
 BG_COLOR = (248, 189, 131)
 LINES_COLOR = (255, 224, 178)
 
 BLACK = (0,0,0)
 WHITE = (255,255,255)
-BLUE = (135,206,250)
-ORANGE = (248, 189, 131)
-BEIGE = (251, 245, 221)
+BLUE = (212, 231, 238)
+BEIGE = (248, 189, 131)
 
 # Circle
 CIRC_COLOR = (251, 245, 221)
@@ -31,6 +31,3 @@ RADIUS = SQSIZE // 4
 # Cross aka X
 X_COLOR = (66,66,66)
 X_WIDTH = 15
-
-# offset
-OFFSET = 50
