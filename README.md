@@ -13,6 +13,6 @@ In order to install the necessary **libraries** to execute this `Project` it's i
     pip install -r requirements.txt
 
 ## Compilation & Execution
-In order to compile and execute this Vintage Arcade, it's necessary to execute the following **command**:
+In order to compile and execute this Game of TicTacToe, it's necessary to execute the following **command**:
 
     python TicTacToe.py
