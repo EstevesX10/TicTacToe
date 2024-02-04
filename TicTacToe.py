@@ -46,6 +46,8 @@ class Board:
         -> return 2 if Player 2 Wins
         '''
         
+        winner = 0
+
         # Vertical Wins
         for col in range(COLS):
             if self.squares[0][col] == self.squares[1][col] == self.squares[2][col] != 0:
@@ -53,11 +55,11 @@ class Board:
                 if show:
                     color = CIRC_COLOR if self.squares[0][col] == 2 else X_COLOR
                     Initial_Pos = (col * SQSIZE + X_OFFSET + SQSIZE // 2, 20 + Y_OFFSET)
-                    Final_Pos = (col * SQSIZE + X_OFFSET + SQSIZE // 2, HEIGHT - 20 - Y_OFFSET)
+                    Final_Pos = (col * SQSIZE + X_OFFSET + SQSIZE // 2, 3*SQSIZE - 20 + Y_OFFSET)
                     pygame.draw.line(self.screen, color, Initial_Pos, Final_Pos, LINE_WIDTH)
                 
-                # Returns Player Number
-                return self.squares[0][col]
+                # Updates Player Number
+                winner = self.squares[0][col]
         
         # Horizontal Wins
         for row in range(ROWS):
@@ -69,8 +71,8 @@ class Board:
                     Final_Pos = (WIDTH - 20 - X_OFFSET, row * SQSIZE + SQSIZE // 2 + Y_OFFSET)
                     pygame.draw.line(self.screen, color, Initial_Pos, Final_Pos, LINE_WIDTH)
                 
-                # Returns Player Number
-                return self.squares[row][0]
+                # Updates Player Number
+                winner = self.squares[row][0]
 
         # Descending Diagonal
         if self.squares[0][0] == self.squares[1][1] == self.squares[2][2] != 0:
@@ -78,24 +80,26 @@ class Board:
             if show:
                 color = CIRC_COLOR if self.squares[1][1] == 2 else X_COLOR
                 Initial_Pos = (20 + X_OFFSET, 20 + Y_OFFSET)
-                Final_Pos = (WIDTH - 20 - X_OFFSET, HEIGHT - 20 - Y_OFFSET)
+                Final_Pos = (X_OFFSET + 3*SQSIZE - 20, Y_OFFSET + 3*SQSIZE - 20)
                 pygame.draw.line(self.screen, color, Initial_Pos, Final_Pos, X_WIDTH)
             
-            return self.squares[1][1]
+            # Updates Winner
+            winner = self.squares[1][1]
 
         # Ascending Diagonal
         if self.squares[2][0] == self.squares[1][1] == self.squares[0][2] != 0:
             
             if show:
                 color = CIRC_COLOR if self.squares[1][1] == 2 else X_COLOR
-                Initial_Pos = (20 + X_OFFSET, HEIGHT - 20 - Y_OFFSET)
-                Final_Pos = (WIDTH - 20 - X_OFFSET, 20 + Y_OFFSET)
+                Initial_Pos = (20 + X_OFFSET, Y_OFFSET + 3*SQSIZE - 20)
+                Final_Pos = (X_OFFSET + 3*SQSIZE - 20, 20 + Y_OFFSET)
                 pygame.draw.line(self.screen, color, Initial_Pos, Final_Pos, X_WIDTH)
             
-            return self.squares[1][1]
+            # Updates Winner
+            winner = self.squares[1][1]
 
-        # No Win Yet
-        return 0
+        # No Win Yet [Initial Value => 0]
+        return winner
 
     def Mark_Square(self, row, col, player):
         self.squares[row][col] = player
@@ -125,7 +129,6 @@ class Game:
         self.player = 1 # Player 1 -> 'X' || Player 2 -> 'O'
         self.game_mode = 'AI' # PVP or AI
         self.screen = screen
-        self.running = True 
         self.winner = 0 # 0 -> Tie || 1 -> 'X' Wins || 2 -> 'O' Wins
     
     def Make_Move(self, row, col):
@@ -142,12 +145,11 @@ class Game:
 
         # Vertical Lines
         pygame.draw.line(self.screen, LINES_COLOR, (SQSIZE + X_OFFSET, Y_OFFSET), (SQSIZE + X_OFFSET, Y_OFFSET + 3*SQSIZE - 1), LINE_WIDTH)
-        pygame.draw.line(self.screen, LINES_COLOR, (WIDTH - SQSIZE - X_OFFSET, Y_OFFSET), (WIDTH - SQSIZE - X_OFFSET, Y_OFFSET + 3*SQSIZE - 1), LINE_WIDTH)
+        pygame.draw.line(self.screen, LINES_COLOR, (2*SQSIZE + X_OFFSET, Y_OFFSET), (2*SQSIZE + X_OFFSET, Y_OFFSET + 3*SQSIZE - 1), LINE_WIDTH)
 
         # Horizontal Lines
-        # pygame.draw.line(self.screen, LINES_COLOR, (X_OFFSET, SQSIZE + Y_OFFSET), (WIDTH - X_OFFSET, SQSIZE + Y_OFFSET), LINE_WIDTH)
         pygame.draw.line(self.screen, LINES_COLOR, (X_OFFSET, SQSIZE + Y_OFFSET), (X_OFFSET + 3*SQSIZE - 1, SQSIZE + Y_OFFSET), LINE_WIDTH)
-        pygame.draw.line(self.screen, LINES_COLOR, (X_OFFSET, HEIGHT - SQSIZE - Y_OFFSET), (X_OFFSET + 3*SQSIZE - 1, HEIGHT - SQSIZE - Y_OFFSET), LINE_WIDTH)
+        pygame.draw.line(self.screen, LINES_COLOR, (X_OFFSET, Y_OFFSET + 2*SQSIZE), (X_OFFSET + 3*SQSIZE - 1, Y_OFFSET + 2*SQSIZE), LINE_WIDTH)
 
     def Draw_Fig(self, row, col):
         if self.player == 1:
@@ -199,37 +201,22 @@ class Game:
         # Displaying the Game Board
         self.Show_Lines()
 
+        # Creating Buttons
+        Back_IMG = pygame.image.load('./Assets/Back.png').convert_alpha()
+        Back_Button = Button(Back_IMG, 580, 20, .1)
+
+        # Extra Game Variables
+        Game_Over = False
+        Run = True
+
         # MAIN LOOP
-        while True:
-            for event in pygame.event.get():
-                if event.type == pygame.KEYDOWN:
-                    # Press g -> Change Game Mode
-                    if event.key == pygame.K_g:
-                        self.Change_Game_Mode()
+        while Run:
 
-                    if event.key == pygame.K_r:
-                        self.Reset(self.screen)
-                        self.game_mode = Mode
-                        self.ai.level = AI_Level 
-                        self.Show_Lines()
-                    
-                if event.type == pygame.QUIT:
-                    pygame.quit()
-                    sys.exit()
-                
-                if event.type == pygame.MOUSEBUTTONDOWN:
-                    pos = event.pos
-                    row = (pos[1] - Y_OFFSET) // SQSIZE
-                    col = (pos[0] - X_OFFSET) // SQSIZE
-
-                    if self.Valid_Pos(row, col) and self.board.Empty_Square(row, col) and self.running:
-                        self.Make_Move(row, col)
-                        if self.IsOver():
-                            self.winner = self.Find_Winner()
-                            print(self.winner)
-                            self.running = False
+            # Buttons
+            if (Back_Button.Action(self.screen)):
+                Run = False
             
-            if self.game_mode == "AI" and self.player == self.ai.player and self.running:
+            if self.game_mode == "AI" and self.player == self.ai.player and Run:
                 # Update the Screen
                 pygame.display.update()
                 
@@ -239,8 +226,40 @@ class Game:
 
                 if self.IsOver():
                     self.winner = self.Find_Winner()
-                    print(self.winner)
-                    self.running = False
+                    Game_Over = True
+
+            # Event Loop
+            for event in pygame.event.get():
+                if event.type == pygame.KEYDOWN:
+                    if event.key == pygame.K_ESCAPE:
+                        Run = False
+
+                    if event.key == pygame.K_r:
+                        Game_Over = False
+                        self.Reset(self.screen)
+                        self.game_mode = Mode
+                        self.ai.level = AI_Level
+                        self.Show_Lines()
+                    
+                if event.type == pygame.QUIT:
+                    pygame.quit()
+                    sys.exit()
+                
+                if not Game_Over and event.type == pygame.MOUSEBUTTONDOWN:
+                    pos = event.pos
+                    row = (pos[1] - Y_OFFSET) // SQSIZE
+                    col = (pos[0] - X_OFFSET) // SQSIZE
+
+                    if self.Valid_Pos(row, col) and self.board.Empty_Square(row, col) and Run:
+                        self.Make_Move(row, col)
+                        if self.IsOver():
+                            self.winner = self.Find_Winner()
+                            Game_Over = True
+
+                """ SHOW WINNER -> TO IMPLEMENT """
+                if (Game_Over):
+                    # print(self.winner)
+                    pass
 
             pygame.display.update()
 
@@ -329,11 +348,6 @@ class TicTacToe():
         Icon = pygame.image.load('./Assets/Icon.png').convert_alpha()
         pygame.display.set_icon(Icon)
 
-        # Board & Game Mode Variables
-        self.game = Game(self.screen)
-        self.board = self.game.board
-        self.ai = self.game.ai
-
         # Fonts
         self.My_Font = pygame.font.SysFont("arialblack", 22)
         self.My_Big_Font = pygame.font.SysFont("arialblack", 30)
@@ -347,7 +361,6 @@ class TicTacToe():
         screen.blit(img, (x,y))
     
     def run(self):
-
         # Images & Buttons
         Main_Menu_BG_IMG = pygame.image.load('./Assets/BG_IMG.jpg').convert_alpha()
         Main_Menu_BG = Image(Main_Menu_BG_IMG, 650, -30, .6)
@@ -359,7 +372,7 @@ class TicTacToe():
         Play_Button = Button(Play_IMG, 220, 200, .3)
 
         Back_IMG = pygame.image.load('./Assets/Back.png').convert_alpha()
-        Back_Button = Button(Back_IMG, 580, 20, .15)
+        Back_Button = Button(Back_IMG, 580, 20, .1)
 
         PVP_IMG = pygame.image.load('./Assets/PVP.png').convert_alpha()
         PVP_Button = Button(PVP_IMG, 250, 130, .2)
@@ -399,7 +412,8 @@ class TicTacToe():
                 if PVP_Button.Action(self.screen):
                     # Activate PVP Mode
                     print("PVP MODE")
-                    self.game.run(1, "PVP")
+                    game = Game(self.screen)
+                    game.run(1, "PVP")
 
                 if Back_Button.Action(self.screen):
                     self.Menu = "Main"
@@ -416,11 +430,13 @@ class TicTacToe():
 
                 if AI_RANDOM_Button.Action(self.screen):
                     print("AI RANDOM")
-                    self.game.run(0, "AI")
+                    game = Game(self.screen)
+                    game.run(0, "AI")
 
                 if AI_MINIMAX_Button.Action(self.screen):
                     print("AI MINIMAX")
-                    self.game.run(1, "AI")
+                    game = Game(self.screen)
+                    game.run(1, "AI")
 
                 if Back_Button.Action(self.screen):
                     self.Menu = "Game_Mode"
