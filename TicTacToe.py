@@ -18,6 +18,7 @@ from Constants import (WIDTH,
                        BLACK,
                        WHITE,
                        BLUE,
+                       BLUE,
                        CIRC_COLOR,
                        CIRC_WIDTH,
                        RADIUS,
@@ -193,6 +194,12 @@ class Game:
             return int(final_state)
         return 0
 
+    def Write(self, font, text, size, color, bg_color, bold, pos, screen):
+        ''' Writes Text into the Screen '''
+        letra = pygame.font.SysFont(font, size, bold)
+        frase = letra.render(text, 1, color, bg_color)
+        screen.blit(frase, pos)
+
     def run(self, AI_Level, Mode):
         # Updating Game Parameters
         self.ai.level = AI_Level
@@ -203,7 +210,7 @@ class Game:
 
         # Creating Buttons
         Back_IMG = pygame.image.load('./Assets/Back.png').convert_alpha()
-        Back_Button = Button(Back_IMG, 580, 20, .1)
+        Back_Button = Button(Back_IMG, 65, 20, .1)
 
         # Extra Game Variables
         Game_Over = False
@@ -216,7 +223,7 @@ class Game:
             if (Back_Button.Action(self.screen)):
                 Run = False
             
-            if self.game_mode == "AI" and self.player == self.ai.player and Run:
+            if not Game_Over and self.game_mode == "AI" and self.player == self.ai.player and Run:
                 # Update the Screen
                 pygame.display.update()
                 
@@ -256,11 +263,20 @@ class Game:
                             self.winner = self.Find_Winner()
                             Game_Over = True
 
-                """ SHOW WINNER -> TO IMPLEMENT """
                 if (Game_Over):
-                    # print(self.winner)
-                    pass
-
+                    if (self.game_mode == "PVP"):
+                        if (self.winner == 0): # Tie
+                            self.Write("Arial", " Tie ", 40, BLUE, WHITE, False, (1.85*SQSIZE, 35), self.screen)
+                        else: # One of the Players Win
+                            self.Write("Arial", " Player {} Wins! ".format(self.winner), 40, BLUE, WHITE, False, (1.25*SQSIZE, 35), self.screen)
+                    elif (self.game_mode == "AI"):
+                        if (self.winner == 0): # Tie
+                            self.Write("Arial", " Tie ", 40, BLUE, WHITE, False, (1.85*SQSIZE, 35), self.screen)
+                        elif (self.winner == 1): # Player 1 Wins
+                            self.Write("Arial", " You Won! ".format(self.winner), 40, BLUE, WHITE, False, (1.525*SQSIZE, 35), self.screen)
+                        else: # AI Wins
+                            self.Write("Arial", " AI Won! ".format(self.winner), 40, BLUE, WHITE, False, (1.6*SQSIZE, 35), self.screen)
+                        
             pygame.display.update()
 
 class AI:
@@ -360,6 +376,12 @@ class TicTacToe():
         img = my_font.render(text, True, color)
         screen.blit(img, (x,y))
     
+    def write(self, font, text, size, color, bg_color, bold, pos, screen):
+        ''' Writes Text into the Screen '''
+        letra = pygame.font.SysFont(font, size, bold)
+        frase = letra.render(text, 1, color, bg_color)
+        screen.blit(frase, pos)
+
     def run(self):
         # Images & Buttons
         Main_Menu_BG_IMG = pygame.image.load('./Assets/BG_IMG.jpg').convert_alpha()
@@ -368,29 +390,29 @@ class TicTacToe():
         Game_Mode_BG_IMG = pygame.image.load('./Assets/BG_IMG_2.jpg').convert_alpha()
         Game_Mode_BG = Image(Game_Mode_BG_IMG, 700, 0, .7)
 
-        Play_IMG = pygame.image.load('./Assets/Start_3.png').convert_alpha()
-        Play_Button = Button(Play_IMG, 220, 200, .3)
+        Play_IMG = pygame.image.load('./Assets/Start.png').convert_alpha()
+        Play_Button = Button(Play_IMG, 220, 240, .3)
 
         Back_IMG = pygame.image.load('./Assets/Back.png').convert_alpha()
-        Back_Button = Button(Back_IMG, 580, 20, .1)
+        Back_Button = Button(Back_IMG, 65, 20, .1)
 
         PVP_IMG = pygame.image.load('./Assets/PVP.png').convert_alpha()
-        PVP_Button = Button(PVP_IMG, 250, 130, .2)
+        PVP_Button = Button(PVP_IMG, 250, 200, .2)
 
         AI_IMG = pygame.image.load('./Assets/AI.png').convert_alpha()
-        AI_Button = Button(AI_IMG, 450, 130, .2)
+        AI_Button = Button(AI_IMG, 450, 200, .2)
 
         AI_BG_IMG = pygame.image.load('./Assets/BG_IMG_3.jpg').convert_alpha()
         AI_BG = Image(AI_BG_IMG, 920, 0, .6)
 
         AI_RANDOM_IMG = pygame.image.load('./Assets/Random.png').convert_alpha()
-        AI_RANDOM_Button = Button(AI_RANDOM_IMG, 150, 180, .2)
+        AI_RANDOM_Button = Button(AI_RANDOM_IMG, 250, 200, .2)
 
         AI_MINIMAX_IMG = pygame.image.load('./Assets/MiniMax.png').convert_alpha()
-        AI_MINIMAX_Button = Button(AI_MINIMAX_IMG, 575, 180, .2)
+        AI_MINIMAX_Button = Button(AI_MINIMAX_IMG, 450, 200, .2)
 
         EXIT_IMG = pygame.image.load('./Assets/Exit.png').convert_alpha()
-        EXIT_Button = Button(EXIT_IMG, 575, 500, .2)
+        EXIT_Button = Button(EXIT_IMG, 575, 520, .2)
 
         while self.Run:
 
@@ -400,11 +422,16 @@ class TicTacToe():
                     self.Menu = "Game_Mode"
 
             elif self.Menu == "Game_Mode":
-                Game_Mode_BG.Display(self.screen)
-                self.Write("GAME MODE", self.My_Big_Font, BLACK, 200, 50, self.screen)
-                self.Write("PVP Mode", self.My_Font, BLACK, 140, 250, self.screen)
-                self.Write("AI Mode", self.My_Font, BLACK, 350, 250, self.screen)
-                
+                # Game_Mode_BG.Display(self.screen)
+                # self.Write("GAME MODE", self.My_Big_Font, BLACK, 200, 50, self.screen)
+                # self.Write("PVP Mode", self.My_Font, BLACK, 140, 250, self.screen)
+                # self.Write("AI Mode", self.My_Font, BLACK, 350, 250, self.screen)
+
+                self.screen.fill(BLUE)
+                self.write("Arial", " Game Mode ", 40, BLUE, WHITE, True, (200, 50), self.screen)
+                self.write("Arial", " PVP ", 30, BLUE, WHITE, False, (170, 330), self.screen)
+                self.write("Arial", " AI ", 30, BLUE, WHITE, False, (380, 330), self.screen)
+
                 if AI_Button.Action(self.screen):
                     # Activate AI Mode
                     self.Menu = "AI"
@@ -422,11 +449,16 @@ class TicTacToe():
                     self.Run = False
 
             elif self.Menu == "AI":
-                AI_BG.Display(self.screen)
-                self.Write("AI MODE", self.My_Big_Font, WHITE, 230, 50, self.screen)
-                self.Write("Random", self.My_Font, WHITE, 48, 300, self.screen)
-                self.Write("Choice", self.My_Font, WHITE, 56, 330, self.screen)
-                self.Write("MiniMax", self.My_Font, WHITE, 475, 300, self.screen)
+                # AI_BG.Display(self.screen)
+                # self.Write("AI MODE", self.My_Big_Font, WHITE, 230, 50, self.screen)
+                # self.Write("Random", self.My_Font, WHITE, 48, 300, self.screen)
+                # self.Write("Choice", self.My_Font, WHITE, 56, 330, self.screen)
+                # self.Write("MiniMax", self.My_Font, WHITE, 475, 300, self.screen)
+
+                self.screen.fill(BLUE)
+                self.write("Arial", " AI Mode ", 40, BLUE, WHITE, True, (225, 50), self.screen)
+                self.write("Arial", " Random ", 30, BLUE, WHITE, False, (145, 330), self.screen)
+                self.write("Arial", " MinMax ", 30, BLUE, WHITE, False, (349, 330), self.screen)
 
                 if AI_RANDOM_Button.Action(self.screen):
                     print("AI RANDOM")
