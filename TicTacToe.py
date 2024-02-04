@@ -1,30 +1,29 @@
 import sys
 import pygame
 import random
-from copy import (copy, deepcopy)
-from math import inf
+from copy import (deepcopy)
+from math import (inf)
 import numpy as np
 from Button import (Button, Image)
 from Constants import (WIDTH,
                        HEIGHT,
                        ROWS,
                        COLS,
+                       OFFSET,
                        X_OFFSET,
                        Y_OFFSET,
                        SQSIZE,
                        LINE_WIDTH,
                        BG_COLOR,
                        LINES_COLOR,
-                       BLACK,
                        WHITE,
                        BLUE,
-                       BLUE,
+                       BEIGE,
                        CIRC_COLOR,
                        CIRC_WIDTH,
                        RADIUS,
                        X_COLOR,
-                       X_WIDTH,
-                       OFFSET)
+                       X_WIDTH)
 
 class Board:
     def __init__(self, screen):
@@ -210,7 +209,10 @@ class Game:
 
         # Creating Buttons
         Back_IMG = pygame.image.load('./Assets/Back.png').convert_alpha()
-        Back_Button = Button(Back_IMG, 65, 20, .1)
+        Back_Button = Button(Back_IMG, 75, 25, .1)
+        
+        Reset_IMG = pygame.image.load('./Assets/Reset.png').convert_alpha()
+        Reset_Button = Button(Reset_IMG, 575, 25, .09)
 
         # Extra Game Variables
         Game_Over = False
@@ -222,6 +224,13 @@ class Game:
             # Buttons
             if (Back_Button.Action(self.screen)):
                 Run = False
+
+            if (Reset_Button.Action(self.screen)):
+                Game_Over = False
+                self.Reset(self.screen)
+                self.game_mode = Mode
+                self.ai.level = AI_Level
+                self.Show_Lines()
             
             if not Game_Over and self.game_mode == "AI" and self.player == self.ai.player and Run:
                 # Update the Screen
@@ -266,16 +275,16 @@ class Game:
                 if (Game_Over):
                     if (self.game_mode == "PVP"):
                         if (self.winner == 0): # Tie
-                            self.Write("Arial", " Tie ", 40, BLUE, WHITE, False, (1.85*SQSIZE, 35), self.screen)
+                            self.Write("Arial", " Tie ", 40, BEIGE, WHITE, True, (1.85*SQSIZE, 35), self.screen)
                         else: # One of the Players Win
-                            self.Write("Arial", " Player {} Wins! ".format(self.winner), 40, BLUE, WHITE, False, (1.25*SQSIZE, 35), self.screen)
+                            self.Write("Arial", " Player {} Wins! ".format(self.winner), 40, BEIGE, WHITE, True, (1.22*SQSIZE, 35), self.screen)
                     elif (self.game_mode == "AI"):
                         if (self.winner == 0): # Tie
-                            self.Write("Arial", " Tie ", 40, BLUE, WHITE, False, (1.85*SQSIZE, 35), self.screen)
+                            self.Write("Arial", " Tie ", 40, BEIGE, WHITE, True, (1.85*SQSIZE, 35), self.screen)
                         elif (self.winner == 1): # Player 1 Wins
-                            self.Write("Arial", " You Won! ".format(self.winner), 40, BLUE, WHITE, False, (1.525*SQSIZE, 35), self.screen)
+                            self.Write("Arial", " You Won! ".format(self.winner), 40, BEIGE, WHITE, True, (1.48*SQSIZE, 35), self.screen)
                         else: # AI Wins
-                            self.Write("Arial", " AI Won! ".format(self.winner), 40, BLUE, WHITE, False, (1.6*SQSIZE, 35), self.screen)
+                            self.Write("Arial", " AI Won! ".format(self.winner), 40, BEIGE, WHITE, True, (1.58*SQSIZE, 35), self.screen)
                         
             pygame.display.update()
 
@@ -352,7 +361,6 @@ class AI:
             Evaluation, Move = self.MiniMax(Main_Board, False)
         
         print(f"AI has chosen to mark the square in pos {Move} with an Evaluation of {Evaluation}")
-
         return Move
 
 class TicTacToe():
@@ -371,10 +379,6 @@ class TicTacToe():
         # Main Application Variables
         self.Run = True
         self.Menu = "Main"
-
-    def Write(self, text, my_font, color, x, y, screen):
-        img = my_font.render(text, True, color)
-        screen.blit(img, (x,y))
     
     def write(self, font, text, size, color, bg_color, bold, pos, screen):
         ''' Writes Text into the Screen '''
@@ -387,23 +391,17 @@ class TicTacToe():
         Main_Menu_BG_IMG = pygame.image.load('./Assets/BG_IMG.jpg').convert_alpha()
         Main_Menu_BG = Image(Main_Menu_BG_IMG, 650, -30, .6)
 
-        Game_Mode_BG_IMG = pygame.image.load('./Assets/BG_IMG_2.jpg').convert_alpha()
-        Game_Mode_BG = Image(Game_Mode_BG_IMG, 700, 0, .7)
-
         Play_IMG = pygame.image.load('./Assets/Start.png').convert_alpha()
         Play_Button = Button(Play_IMG, 220, 240, .3)
 
         Back_IMG = pygame.image.load('./Assets/Back.png').convert_alpha()
-        Back_Button = Button(Back_IMG, 65, 20, .1)
+        Back_Button = Button(Back_IMG, 75, 25, .1)
 
         PVP_IMG = pygame.image.load('./Assets/PVP.png').convert_alpha()
         PVP_Button = Button(PVP_IMG, 250, 200, .2)
 
         AI_IMG = pygame.image.load('./Assets/AI.png').convert_alpha()
         AI_Button = Button(AI_IMG, 450, 200, .2)
-
-        AI_BG_IMG = pygame.image.load('./Assets/BG_IMG_3.jpg').convert_alpha()
-        AI_BG = Image(AI_BG_IMG, 920, 0, .6)
 
         AI_RANDOM_IMG = pygame.image.load('./Assets/Random.png').convert_alpha()
         AI_RANDOM_Button = Button(AI_RANDOM_IMG, 250, 200, .2)
@@ -422,23 +420,16 @@ class TicTacToe():
                     self.Menu = "Game_Mode"
 
             elif self.Menu == "Game_Mode":
-                # Game_Mode_BG.Display(self.screen)
-                # self.Write("GAME MODE", self.My_Big_Font, BLACK, 200, 50, self.screen)
-                # self.Write("PVP Mode", self.My_Font, BLACK, 140, 250, self.screen)
-                # self.Write("AI Mode", self.My_Font, BLACK, 350, 250, self.screen)
-
                 self.screen.fill(BLUE)
-                self.write("Arial", " Game Mode ", 40, BLUE, WHITE, True, (200, 50), self.screen)
-                self.write("Arial", " PVP ", 30, BLUE, WHITE, False, (170, 330), self.screen)
-                self.write("Arial", " AI ", 30, BLUE, WHITE, False, (380, 330), self.screen)
+                self.write("Arial", " Game Mode ", 40, BEIGE, WHITE, True, (200, 50), self.screen)
+                self.write("Arial", " PVP ", 30, BEIGE, WHITE, False, (170, 330), self.screen)
+                self.write("Arial", " AI ", 30, BEIGE, WHITE, False, (380, 330), self.screen)
 
                 if AI_Button.Action(self.screen):
                     # Activate AI Mode
                     self.Menu = "AI"
                     
                 if PVP_Button.Action(self.screen):
-                    # Activate PVP Mode
-                    print("PVP MODE")
                     game = Game(self.screen)
                     game.run(1, "PVP")
 
@@ -449,24 +440,16 @@ class TicTacToe():
                     self.Run = False
 
             elif self.Menu == "AI":
-                # AI_BG.Display(self.screen)
-                # self.Write("AI MODE", self.My_Big_Font, WHITE, 230, 50, self.screen)
-                # self.Write("Random", self.My_Font, WHITE, 48, 300, self.screen)
-                # self.Write("Choice", self.My_Font, WHITE, 56, 330, self.screen)
-                # self.Write("MiniMax", self.My_Font, WHITE, 475, 300, self.screen)
-
                 self.screen.fill(BLUE)
-                self.write("Arial", " AI Mode ", 40, BLUE, WHITE, True, (225, 50), self.screen)
-                self.write("Arial", " Random ", 30, BLUE, WHITE, False, (145, 330), self.screen)
-                self.write("Arial", " MinMax ", 30, BLUE, WHITE, False, (349, 330), self.screen)
+                self.write("Arial", " AI Mode ", 40, BEIGE, WHITE, True, (225, 50), self.screen)
+                self.write("Arial", " Random ", 30, BEIGE, WHITE, False, (145, 330), self.screen)
+                self.write("Arial", " MinMax ", 30, BEIGE, WHITE, False, (349, 330), self.screen)
 
                 if AI_RANDOM_Button.Action(self.screen):
-                    print("AI RANDOM")
                     game = Game(self.screen)
                     game.run(0, "AI")
 
                 if AI_MINIMAX_Button.Action(self.screen):
-                    print("AI MINIMAX")
                     game = Game(self.screen)
                     game.run(1, "AI")
 
